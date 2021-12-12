@@ -45,5 +45,11 @@ app.use('/api/group', verifyToken, groupRouter);
 app.use('/api/task', verifyToken, taskRouter);
 app.use('/api/student', verifyToken, studentRouter);
 
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(__dirname + '/public/'));
+
+  app.get(/.*/, (req, res) => res.sendFile(__dirname + '/public/index.html'));
+}
+
 // Export express app
 module.exports = app;

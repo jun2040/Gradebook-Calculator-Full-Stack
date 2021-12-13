@@ -36,6 +36,7 @@ exports.login = async (req, res, next) => {
   res.status(200).send({
     _id: user._id,
     email: user.email,
+    role: user.role,
     accessToken: token
   });
 }

@@ -4,6 +4,57 @@ const Task = require('../models/task');
 
 const { toLetter } = require('../utilities/grade');
 
+// Return student profile
+exports.profile = async (req, res, next) => {
+  const group = await Group.findOne({ _id: req.params.group_id });
+  const student = await User.findOne({ _id: req.params.student_id });
+
+  if (!group || !student) {
+    res.status(404).send({ message: 'Student doesn\'t exist' });
+    return;
+  }
+
+  const task_query = {
+    $and: [
+      {
+        _id: { $in: student.task_list.map(a => a.task_id) }
+      },
+      {
+        _id: { $in: group.task_list }
+      }
+    ]
+  }
+  const tasks = await Task.find(task_query)
+
+  let sum = 0, len = 0;
+
+  for (const task of tasks) {
+    const t = task.student_list.find(a => a.student_id.toString() === req.params.student_id.toString());
+
+    if (t && t.grade) {
+      sum += (t.grade / task.max_grade * 100);
+      len++;
+    }
+  }
+
+  let avg = (sum / len).toFixed(2);
+
+  if (isNaN(avg)) {
+    avg = '-';
+  }
+
+  const payload = {
+    name: student.first_name + ' ' + student.last_name,
+    group: group.name,
+    email: student.email,
+    percent_avg: avg + '%',
+    letter_avg: toLetter(avg),
+    task_num: tasks.length
+  }
+
+  res.send(payload)
+}
+
 // Return tasks that are assigned to the student
 exports.data = async (req, res, next) => {
   // Get student
@@ -11,6 +62,11 @@ exports.data = async (req, res, next) => {
 
   // Get group
   const group = await Group.findOne({ _id: req.params.group_id });
+
+  if (!student || !group) {
+    res.status(404).send({ message: 'Student doesn\'t exist' });
+    return;
+  }
 
   // Define global routes
   const routes = {
@@ -27,6 +83,7 @@ exports.data = async (req, res, next) => {
     ]
   };
   const all_tasks = await Task.find(all_tasks_query);
+  console.log(all_tasks)
 
   // Initialize options array
   let options = [];
@@ -93,7 +150,17 @@ exports.data = async (req, res, next) => {
   ];
 
   // Retrieve tasks
-  const tasks = await Task.find({ _id: { $in: student.task_list.map(a => a.task_id) } });
+  const task_query = {
+    $and: [
+      {
+        _id: { $in: student.task_list.map(a => a.task_id) }
+      },
+      {
+        _id: { $in: group.task_list }
+      }
+    ]
+  }
+  const tasks = await Task.find(task_query);
 
   // Initialize table content array
   let contents = [];
@@ -291,7 +358,7 @@ exports.remove_task = async (req, res, next) => {
       } 
     } 
   };
-  await User.updateOne({ _id: req.params.student_id }, student_pull).then((res) => console.log(res));
+  await User.updateOne({ _id: req.params.student_id }, student_pull);
   
   // Update task's student list
   const task_pull = {
@@ -301,9 +368,7 @@ exports.remove_task = async (req, res, next) => {
       }
     }
   };
-  await Task.updateOne({ _id: req.params.task_id }, task_pull).then((res) => console.log(res));
-
-  console.log(req.params)
+  await Task.updateOne({ _id: req.params.task_id }, task_pull);
 
   res.end();
 }

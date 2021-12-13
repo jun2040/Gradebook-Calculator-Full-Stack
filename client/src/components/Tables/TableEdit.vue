@@ -1,6 +1,6 @@
 <template>
   <h2>{{ data.title }}</h2>
-  <AddRow :options="data.options" @fetch="loadData" />
+  <AddRow :options="data.options" @fetch="reload" />
   <table>
     <thead>
       <th v-for="header in data.headers">{{ header.name }}</th>
@@ -12,7 +12,7 @@
         v-for="content in data.contents" 
         :data="content"
         type="edit"
-        @fetch="loadData"
+        @fetch="reload"
       />
     </tbody>
   </table>
@@ -39,7 +39,7 @@ export default {
     }
   },
   emits: [
-    //
+    'reload'
   ],
   setup(props, { emit }) {
     const data = ref({})
@@ -56,9 +56,15 @@ export default {
     
     loadData()
 
+    function reload() {
+      emit('reload')
+      loadData()
+    }
+
     return {
       data,
-      loadData
+      loadData,
+      reload
     }
   }
 }

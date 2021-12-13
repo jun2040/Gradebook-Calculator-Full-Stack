@@ -37,6 +37,18 @@ exports.create = async (req, res, next) => {
 exports.edit = async (req, res, next) => {
   await Task.updateOne({ _id: req.params.task_id }, req.body)
 
+  const assigned_students_query = {
+    'task_list.task_id': req.params.task_id,
+    'task_list.grade': { $gt: req.body.max_grade }
+  };
+
+  const assigned_students_set = {
+    $set: {
+      'task_list.$.grade': req.body.max_grade
+    }
+  }
+  const students = await User.updateMany(assigned_students_query, assigned_students_set)
+
   res.end();
 }
 
@@ -47,7 +59,10 @@ exports.delete = async (req, res, next) => {
 
   // Update students
   const task = await Task.findOne({ _id: req.params.task_id });
-  await User.updateMany({ _id: { $in: task.student_list.map(a => a.student_id) } }, { $pull: { task_list: { task_id: req.params.task_id } } })
+
+  if (task) {
+    await User.updateMany({ _id: { $in: task.student_list.map(a => a.student_id) } }, { $pull: { task_list: { task_id: req.params.task_id } } })
+  }
   
   // Delete task
   await Task.deleteOne({ _id: req.params.task_id });

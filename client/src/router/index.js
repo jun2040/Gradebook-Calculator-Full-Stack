@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/public/Home.vue'
 import Login from '../views/public/Login.vue'
 import Register from '../views/public/Register.vue'
+import NotFound from '../views/public/NotFound.vue'
 
 import Dashboard from '../views/Dashboard.vue'
 import Group from '../views/Group.vue'
@@ -48,6 +49,12 @@ const routes = [
     name: 'Student',
     component: Student,
     meta: { auth: true }
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    name: '404',
+    component: NotFound,
+    meta: { auth: false }
   }
 ]
 

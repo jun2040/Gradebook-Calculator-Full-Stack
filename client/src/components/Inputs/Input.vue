@@ -6,8 +6,8 @@
       :value="modelValue"
       @input="$emit('update:modelValue', $event.target.value)"
     >
-    <p v-if="vuelidate[data.id].$error && data.required">{{ vuelidate[data.id].$errors[0].$message }}</p>
-    <p v-if="vuelidate[data.id].$error && data.id === 'grade'">{{ vuelidate[data.id].$errors[0].$message }}</p>
+    <p v-if="vuelidate[data.id].$error && data.required" class="error">{{ vuelidate[data.id].$errors[0].$message }}</p>
+    <p v-if="vuelidate[data.id].$error && data.id === 'grade'" class="error">{{ vuelidate[data.id].$errors[0].$message }}</p>
   </div>
   <div v-if="!data.isEditable">
     <p>{{ def[data.id] }}</p>

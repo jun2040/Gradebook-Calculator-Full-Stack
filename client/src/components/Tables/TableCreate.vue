@@ -11,13 +11,13 @@
         v-for="content in data.contents" 
         :data="content"
         type="edit"
-        @fetch="loadData"
+        @fetch="reload"
       />
       <CreateRow
         v-if="data.headers"
         :headers="data.headers"
         :routes="data.routes"
-        @fetch="loadData"
+        @fetch="reload"
       />
     </tbody>
   </table>
@@ -45,6 +45,9 @@ export default {
     Row,
     CreateRow
   },
+  emits: [
+    'reload'
+  ],
   setup(props, { emit }) {
     const data = ref({})
 
@@ -60,9 +63,15 @@ export default {
     
     loadData()
 
+    function reload() {
+      emit('reload')
+      loadData()
+    }
+
     return {
       data,
-      loadData
+      loadData,
+      reload
     }
   }
 }

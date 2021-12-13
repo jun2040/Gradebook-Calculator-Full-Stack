@@ -4,10 +4,66 @@ const Task = require('../models/task');
 
 const { toLetter } = require('../utilities/grade');
 
+// Return group profile
+exports.profile = async (req, res, next) => {
+  const group = await Group.findOne({ _id: req.params.group_id });
+
+  if (!group) {
+    res.status(404).send({ message: 'Group doesn\'t exist' });
+    return;
+  }
+
+  const payload = {
+    name: group.name,
+    block: group.block,
+    start_time: group.start_time,
+    end_time: group.end_time,
+    student_num: group.student_list.length,
+    task_num: group.task_list.length
+  };
+
+  res.send(payload);
+}
+
+exports.profileStudent = async (req, res, next) => {
+  const group = await Group.findOne({ _id: req.params.group_id });
+  const student = await User.findOne({ _id: req.user.id });
+
+  if (!group || !student) {
+    res.status(404).send({ message: 'Group doesn\'t exist' });
+    return;
+  }
+
+  const tasks_query = {
+    $and: [
+      { _id: { $in: group.task_list } },
+      { _id: { $in: student.task_list.map(a => a.task_id) } }
+    ]
+  };
+  const tasks = await Task.find(tasks_query);
+
+  console.log(tasks)
+
+  const payload = {
+    name: group.name,
+    block: group.block,
+    start_time: group.start_time,
+    end_time: group.end_time,
+    task_num: tasks.length
+  };
+
+  res.send(payload);
+}
+
 // Return students in the group
 exports.dataStudents = async (req, res, next) => {
   // Get group
   const group = await Group.findOne({ _id: req.params.group_id });
+
+  if (!group) {
+    res.status(404).send({ message: 'Group doesn\'t exist' });
+    return;
+  }
 
   // Define global routes
   const routes = {
@@ -19,9 +75,9 @@ exports.dataStudents = async (req, res, next) => {
   const all_students_query = { 
     $and: [
       { role: 'student' }, 
-      { _id: { 
-        $nin: group.student_list 
-      } }
+      { 
+        _id: { $nin: group.student_list } 
+      }
     ]
   }
   const all_students = await User.find(all_students_query, { password: 0 });
@@ -103,7 +159,6 @@ exports.dataStudents = async (req, res, next) => {
       first_name: student.first_name,
       last_name: student.last_name,
       email: student.email,
-      task_num: student.task_list.length,
       link: nxt + student._id,
       routes: {
         add: routes.add + student._id,
@@ -111,25 +166,35 @@ exports.dataStudents = async (req, res, next) => {
       }
     };
 
+    const task_query = {
+      $and: [
+        { _id: { $in: group.task_list } },
+        { _id: { $in: student.task_list.map(a => a.task_id) } }
+      ]
+    };
+
+    const tasks = await Task.find(task_query);
+
     let sum = 0, len = 0;
 
-    for (const task of student.task_list) {
-      const max_grade = await Task.findOne({ _id: task.task_id })
+    for (const task of tasks) {
+      const t = task.student_list.find(a => a.student_id.toString() === student._id.toString());
 
-      if (task.grade) {
-        sum += (task.grade / max_grade.max_grade * 100);
+      if (t && t.grade) {
+        sum += (t.grade / task.max_grade * 100);
         len++;
       }
     }
-
+    
     let avg = (sum / len).toFixed(2);
 
     if (isNaN(avg)) {
       avg = '-';
     }
 
-    s.percent_avg = avg + '%';
+    s.percent_avg = avg + '% -';
     s.letter_avg = toLetter(avg);
+    s.task_num = len
 
     contents.push(s);
   }
@@ -151,8 +216,10 @@ exports.dataStudents = async (req, res, next) => {
 exports.dataTasks = async (req, res, next) => {
   const group = await Group.findOne({ _id: req.params.group_id });
 
-  // Define next link
-  const nxt = '/task/' + req.params.group_id + '/'
+  if (!group) {
+    res.status(404).send({ message: 'Group doesn\'t exist' });
+    return;
+  }
 
   // Define table header
   const headers = [
@@ -244,13 +311,126 @@ exports.dataTasks = async (req, res, next) => {
   res.send(payload);
 }
 
+exports.dataStudentsTasks = async (req, res, next) => {
+  const group = await Group.findOne({ _id: req.params.group_id });
+  const student = await User.findOne({ _id: req.user.id });
+
+  if (!group || !student) {
+    res.status(404).send({ message: 'Group doesn\'t exist' });
+    return;
+  }
+
+  // Define table header
+  const headers = [
+    {
+      id: 'name',
+      name: 'Assignment',
+      type: 'text',
+      isEditable: false,
+      required: false
+    },
+    {
+      id: 'type',
+      name: 'Type',
+      type: 'text',
+      isEditable: false,
+      required: false
+    },
+    {
+      id: 'assign_date',
+      name: 'Assign Date',
+      type: 'date',
+      isEditable: false,
+      required: false
+    },
+    {
+      id: 'due_date',
+      name: 'Due Date',
+      type: 'date',
+      isEditable: false,
+      required: false
+    },
+    {
+      id: 'grade',
+      name: 'Grade',
+      type: 'number',
+      isEditable: false,
+      required: false
+    },
+    {
+      id: 'percent_grade',
+      name: 'Percent Grade',
+      type: 'text',
+      isEditable: false,
+      required: false
+    },
+    {
+      id: 'letter_grade',
+      name: 'Letter Grade',
+      type: 'text',
+      isEditable: false,
+      required: false
+    }
+  ];
+
+  // Retrieve tasks
+  const tasks_query = {
+    $and: [
+      { _id: { $in: group.task_list } },
+      { _id: { $in: student.task_list.map(a => a.task_id) } }
+    ]
+  };
+  const tasks = await Task.find(tasks_query);
+
+  console.log(tasks)
+
+  let contents = [];
+
+  for (const task of tasks) {
+    let grade = student.task_list.find(a => {
+      return a.task_id.toString() === task._id.toString()
+    }).grade;
+
+    let percent;
+
+    if (grade) {
+      percent = (grade / task.max_grade * 100).toFixed(2);
+    } else {
+      grade = '-'
+      percent = '-'
+    }
+
+    let t = {
+      name: task.name,
+      type: task.type,
+      assign_date: task.assign_date,
+      due_date: task.due_date,
+      max_grade: task.max_grade,
+      grade: grade,
+      percent_grade: percent + '%',
+      letter_grade: toLetter(percent),
+      link: '/group/' + req.params.group_id
+    };
+
+    contents.push(t);
+  }
+
+  // Create payload
+  const payload = {
+    title: 'Assignments',
+    headers: headers,
+    contents: contents
+  }
+
+  // Send payload
+  res.send(payload);
+}
+
 // Create group
 exports.create = async (req, res, next) => {
   // Get group parameters
   const group = req.body;
   group.teacher_id = req.user.id;
-
-  console.log(req.body)
 
   // Create new group document
   const newGroup = await new Group(group).save();

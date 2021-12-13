@@ -4,9 +4,21 @@ const Task = require('../models/task');
 
 require('dotenv').config();
 
+exports.profile = async (req, res, next) => {
+  const user = await User.findOne({ _id: req.user.id });
+
+  const payload = {
+    name: user.first_name + ' ' + user.last_name,
+    email: user.email,
+    class_num: user.group_list.length
+  };
+
+  res.send(payload);
+}
+
 // Return user's group
 exports.data = async (req, res, next) => {
-  const user = await User.findOne({ _id: req.user.id })
+  const user = await User.findOne({ _id: req.user.id });
   const nxt = '/group/'
   const headers = [
     {
@@ -51,17 +63,17 @@ exports.data = async (req, res, next) => {
       isEditable: false,
       required: false
     }
-  ]
+  ];
 
   const routes = {
     create: '/group/create',
     edit: '/group/edit',
     delete: '/group/delete'
-  }
+  };
 
-  const groups = await Group.find({ _id: { $in: user.group_list } })
+  const groups = await Group.find({ _id: { $in: user.group_list } });
 
-  let contents = []
+  let contents = [];
 
   for (group of groups) {
     let g = {
@@ -76,9 +88,9 @@ exports.data = async (req, res, next) => {
         edit: routes.edit + '/' + group._id,
         delete: routes.delete + '/' + group._id
       }
-    }
+    };
 
-    contents.push(g)
+    contents.push(g);
   }
 
   // Send user data
@@ -87,7 +99,74 @@ exports.data = async (req, res, next) => {
     routes: routes,
     headers: headers,
     contents: contents
+  };
+
+  res.send(payload);
+}
+
+exports.dataStudent = async (req, res, next) => {
+  const user = await User.findOne({ _id: req.user.id });
+  const nxt = '/group/'
+  const headers = [
+    {
+      id: 'name',
+      name: 'Class',
+      type: 'text',
+      isEditable: true,
+      required: true
+    },
+    {
+      id: 'block',
+      name: 'Block',
+      type: 'text',
+      isEditable: true,
+      required: true
+    },
+    {
+      id: 'start_time',
+      name: 'Start Time',
+      type: 'time',
+      isEditable: true,
+      required: false
+    },
+    {
+      id: 'end_time',
+      name: 'End Time',
+      type: 'time',
+      isEditable: true,
+      required: false
+    }
+  ];
+
+  const routes = {
+    create: '/group/create',
+    edit: '/group/edit',
+    delete: '/group/delete'
+  };
+
+  const groups = await Group.find({ _id: { $in: user.group_list } });
+
+  let contents = [];
+
+  for (group of groups) {
+    let g = {
+      name: group.name,
+      block: group.block,
+      start_time: group.start_time,
+      end_time: group.end_time,
+      link: nxt + group._id
+    };
+
+    contents.push(g);
   }
+
+  // Send user data
+  const payload = {
+    title: 'Classes',
+    routes: routes,
+    headers: headers,
+    contents: contents
+  };
 
   res.send(payload);
 }

@@ -4,6 +4,9 @@ const student_ctrl = require('../controllers/student');
 
 const { verifyParams } = require('../middlewares/verify');
 
+// GEt student profile
+router.get('/profile/:group_id/:student_id', verifyParams, student_ctrl.profile);
+
 // GET data
 router.get('/get/:group_id/:student_id', verifyParams, student_ctrl.data);
 

@@ -105,12 +105,10 @@ export default {
     // Create
     async function create() {
       isLoading.value = true
-      console.log(fields)
 
       v.value.$validate()
 
       if (!v.value.$error) {
-        console.log(props.routes.create)
         await axios.post(props.routes.create, fields.value, { headers: authHeader() })
           .then((res) => {
             toggle()

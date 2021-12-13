@@ -7,6 +7,11 @@ require('dotenv').config();
 exports.profile = async (req, res, next) => {
   const user = await User.findOne({ _id: req.user.id });
 
+  if (!user) {
+    console.log('usernotfound')
+    return res.status(400).send({ message: 'User not found' });
+  }
+
   const payload = {
     name: user.first_name + ' ' + user.last_name,
     email: user.email,
@@ -19,6 +24,12 @@ exports.profile = async (req, res, next) => {
 // Return user's group
 exports.data = async (req, res, next) => {
   const user = await User.findOne({ _id: req.user.id });
+
+  if (!user) {
+    console.log('usernotfound')
+    return res.status(400).send({ message: 'User not found' });
+  }
+
   const nxt = '/group/'
   const headers = [
     {
@@ -106,6 +117,12 @@ exports.data = async (req, res, next) => {
 
 exports.dataStudent = async (req, res, next) => {
   const user = await User.findOne({ _id: req.user.id });
+
+  if (!user) {
+    console.log('usernotfound')
+    return res.status(400).send({ message: 'User not found' });
+  }
+
   const nxt = '/group/'
   const headers = [
     {

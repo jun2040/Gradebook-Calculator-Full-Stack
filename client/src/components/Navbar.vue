@@ -1,8 +1,14 @@
 <template>
   <nav>
-    <button v-if="!store.state.initialState.status.loggedIn" @click="register">Register</button>
-    <button v-if="!store.state.initialState.status.loggedIn" @click="login">Login</button>
-    <button v-if="store.state.initialState.status.loggedIn" @click="logout">Logout</button>
+    <div class="left">
+      <button @click="backward">&lt;</button>
+      <button @click="forward">></button>
+    </div>
+    <div class="right">
+      <button v-if="!store.state.initialState.status.loggedIn" @click="register">Register</button>
+      <button v-if="!store.state.initialState.status.loggedIn" @click="login">Login</button>
+      <button v-if="store.state.initialState.status.loggedIn" @click="logout">Logout</button>
+    </div>
   </nav>
 </template>
 
@@ -26,11 +32,21 @@ export default {
       router.push('/login')
     }
 
+    function forward() {
+      router.go(1)
+    }
+
+    function backward() {
+      router.go(-1)
+    }
+
     return {
       store,
       login,
       register,
-      logout
+      logout,
+      forward,
+      backward
     }
   }
 }
@@ -44,11 +60,23 @@ nav {
   background: gray;
 }
 
-button {
+.left button {
+  width: 40px;
+  height: 40px;
+  float: left;
+  background: white;
+  border: 0;
+}
+
+.right button {
   width: 80px;
   height: 40px;
   float: right;
   background: white;
   border: 0;
+}
+
+button:hover {
+  background: #7a7a7a;
 }
 </style>

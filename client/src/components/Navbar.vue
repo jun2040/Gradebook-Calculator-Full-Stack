@@ -57,7 +57,7 @@ nav {
   width: 100%;
   height: 40px;
   align-content: right;
-  background: gray;
+  background: none;
 }
 
 .left button {

@@ -42,6 +42,7 @@ export default {
           data.value = res.data
         })
         .catch((err) => {
+          router.push('/404')
           console.log(err)
         })
     }

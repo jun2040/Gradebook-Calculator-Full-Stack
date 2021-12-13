@@ -72,6 +72,7 @@ export default {
       if (!v.value.$error) {
         axios.post('/auth/login', fields)
           .then((res) => {
+            console.log(res.data)
             if (res.data.accessToken) {
               localStorage.setItem('user', JSON.stringify(res.data))
               store.dispatch('loginSuccess', res.data)
@@ -80,9 +81,9 @@ export default {
           })
           .catch((err) => {
             store.dispatch('loginFailure')
+            console.log(err)
             error.value = true
             error_msg.value = err.response.data.message
-            console.log(err)
           })
       }
     }

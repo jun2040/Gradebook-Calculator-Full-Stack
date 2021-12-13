@@ -114,6 +114,9 @@ export default {
             toggle()
             emit('fetch')
           })
+          .catch((err) => {
+            console.log(err)
+          })
       }
 
       isLoading.value = false

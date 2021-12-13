@@ -46,6 +46,7 @@ export default {
             data.value = res.data
           })
           .catch((err) => {
+            router.push('/404')
             console.log(err)
           })
       } else if (store.state.initialState.user.role === 'student') {

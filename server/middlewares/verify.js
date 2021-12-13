@@ -27,8 +27,6 @@ exports.verifyRegister = async (req, res, next) => {
     .catch((err) => {
       console.log(err);
     })
-  
-  console.log('a')
 
   if (user) {
     res.status(500).send({ message: 'Email already in use' });

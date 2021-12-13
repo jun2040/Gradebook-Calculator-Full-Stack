@@ -192,7 +192,7 @@ exports.dataStudents = async (req, res, next) => {
       avg = '-';
     }
 
-    s.percent_avg = avg + '% -';
+    s.percent_avg = avg + '%';
     s.letter_avg = toLetter(avg);
     s.task_num = len
 

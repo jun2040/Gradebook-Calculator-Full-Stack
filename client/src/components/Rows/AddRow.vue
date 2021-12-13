@@ -64,6 +64,7 @@ export default {
             emit('fetch')
           })
           .catch((err) => {
+            router.push('/404')
             console.log(err)
           })
       }

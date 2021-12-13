@@ -7,7 +7,6 @@ import NotFound from '../views/public/NotFound.vue'
 
 import Dashboard from '../views/Dashboard.vue'
 import Group from '../views/Group.vue'
-import Task from '../views/Task.vue'
 import Student from '../views/Student.vue'
 
 const routes = [
@@ -36,12 +35,6 @@ const routes = [
     path: '/group/:group_id',
     name: 'Group',
     component: Group,
-    meta: { auth: true }
-  },
-  {
-    path: '/task/:group_id/:task_id',
-    name: 'Task',
-    component: Task,
     meta: { auth: true }
   },
   {
